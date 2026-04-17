@@ -9,24 +9,56 @@
   <style>
     :root { --red: #C41E3A; }
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#000; color:#fff; font-family:'Inter', sans-serif; overflow:hidden; cursor:none; }
+    body { 
+      background:#000; 
+      color:#fff; 
+      font-family:'Inter', sans-serif; 
+      overflow:hidden; 
+      cursor:none; 
+    }
 
-    .cursor { position:fixed; width:22px; height:22px; border:1.5px solid var(--red); border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:difference; }
+    .cursor { 
+      position:fixed; 
+      width:22px; 
+      height:22px; 
+      border:1.5px solid var(--red); 
+      border-radius:50%; 
+      pointer-events:none; 
+      z-index:9999; 
+      mix-blend-mode:difference; 
+    }
 
-    video { position:fixed; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+    video { 
+      position:fixed; 
+      top:0; left:0; 
+      width:100%; height:100%; 
+      object-fit:cover; 
+      z-index:1; 
+    }
 
     .film-grain {
-      position:fixed; inset:0; background:repeating-linear-gradient(transparent 0px, rgba(255,255,255,0.02) 1px, transparent 2px);
-      pointer-events:none; z-index:20; opacity:0.5;
+      position:fixed; 
+      inset:0; 
+      background:repeating-linear-gradient(transparent 0px, rgba(255,255,255,0.025) 1px, transparent 2px);
+      pointer-events:none; 
+      z-index:20; 
+      opacity:0.5;
     }
 
     .subtitle {
-      position:fixed; bottom:8%; left:50%; transform:translateX(-50%);
-      font-size:1.3rem; font-weight:500; letter-spacing:3px; text-transform:uppercase;
-      text-shadow:0 0 25px black; z-index:30;
+      position:fixed; 
+      bottom:8%; 
+      left:50%; 
+      transform:translateX(-50%);
+      font-size:1.35rem; 
+      font-weight:500; 
+      letter-spacing:3px; 
+      text-transform:uppercase;
+      text-shadow:0 0 25px black; 
+      z-index:30;
     }
 
-    /* NEW SMALL CINEMATIC CALL NOTIFICATION */
+    /* SMALL CINEMATIC CALL NOTIFICATION */
     .call-box {
       position:fixed;
       top:12%;
@@ -52,13 +84,12 @@
 
     .call-info h3 {
       font-family:'Space Grotesk', sans-serif;
-      font-size:1.55rem;
+      font-size:1.6rem;
       font-weight:700;
       color:var(--red);
-      margin-bottom:4px;
     }
     .call-info p {
-      font-size:1.1rem;
+      font-size:1.15rem;
       opacity:0.9;
     }
 
@@ -78,13 +109,64 @@
     #answer { border-color:var(--red); color:white; }
     #answer:hover { background:var(--red); }
     #decline { border-color:#555; color:#aaa; }
+
+    /* Choices */
+    .choice-container {
+      position:fixed; 
+      inset:0; 
+      display:none; 
+      align-items:center; 
+      justify-content:center; 
+      gap:40px; 
+      z-index:70;
+    }
+    .choice {
+      width:300px;
+      text-align:center;
+      cursor:pointer;
+      transition:all 0.4s;
+    }
+    .choice:hover { transform:scale(1.08); }
+    .choice video {
+      width:100%; 
+      height:190px; 
+      object-fit:cover; 
+      border-radius:6px;
+    }
+    .choice h2 {
+      font-family:'Space Grotesk', sans-serif;
+      font-size:1.9rem;
+      margin-top:14px;
+      letter-spacing:2px;
+    }
+
+    /* Final Screen */
+    .final-screen {
+      position:fixed; 
+      inset:0; 
+      background:#000; 
+      display:none; 
+      align-items:center; 
+      justify-content:center; 
+      flex-direction:column; 
+      z-index:100; 
+      text-align:center;
+    }
+    .run-text {
+      font-family:'Space Grotesk', sans-serif;
+      font-size:4.5rem;
+      font-weight:700;
+      line-height:1.05;
+      letter-spacing:-2px;
+      margin:20px 0;
+    }
   </style>
 </head>
 <body>
 
   <div class="cursor" id="cursor"></div>
 
-  <!-- VIDEO -->
+  <!-- MAIN VIDEO -->
   <video id="mainVideo" autoplay muted playsinline loop>
     <source src="https://i.imgur.com/DCMK44t.mp4" type="video/mp4">
   </video>
@@ -103,15 +185,38 @@
     </div>
   </div>
 
-  <!-- CHOICES CONTAINER (unchanged) -->
-  <div id="choices" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; gap:40px; z-index:70;">
-    <!-- Add your choice videos here -->
+  <!-- CHOICES -->
+  <div class="choice-container" id="choices">
+    <div class="choice" data-choice="join">
+      <video src="YOUR_JOIN_LINK.mp4" muted loop></video>
+      <h2>JOIN</h2>
+    </div>
+    <div class="choice" data-choice="observe">
+      <video src="YOUR_OBSERVE_LINK.mp4" muted loop></video>
+      <h2>OBSERVE</h2>
+    </div>
+    <div class="choice" data-choice="run">
+      <video src="YOUR_RUN_LINK.mp4" muted loop></video>
+      <h2>RUN</h2>
+    </div>
   </div>
 
-  <!-- FINAL SCREEN (unchanged) -->
-  <div id="final" style="display:none; position:fixed; inset:0; background:#000; align-items:center; justify-content:center; flex-direction:column; z-index:100; text-align:center;">
-    <h1 style="font-size:5.5rem; font-family:'Space Grotesk'; letter-spacing:-3px;">YOU HAVE BEEN SELECTED</h1>
-    <!-- Run message and form here -->
+  <!-- FINAL SCREEN -->
+  <div class="final-screen" id="final">
+    <h1 style="font-size:5.8rem; font-family:'Space Grotesk'; letter-spacing:-4px; margin-bottom:20px;">YOU HAVE BEEN SELECTED</h1>
+    
+    <div id="runMessage" style="display:none;">
+      <div class="run-text">EVERY SATURDAY</div>
+      <div class="run-text" style="font-size:3.8rem; color:var(--red);">6 AM</div>
+      <div class="run-text" style="font-size:2.8rem;">PRELLER SQUARE</div>
+    </div>
+
+    <form style="margin-top:50px; width:420px;">
+      <input type="text" placeholder="NAME" style="width:100%; background:transparent; border:2px solid #C41E3A; color:white; padding:16px; margin:10px 0;">
+      <input type="text" placeholder="EMAIL OR WHATSAPP" style="width:100%; background:transparent; border:2px solid #C41E3A; color:white; padding:16px; margin:10px 0;">
+      <textarea placeholder="WHY DO YOU WANT SWAG?" style="width:100%; height:130px; background:transparent; border:2px solid #C41E3A; color:white; padding:16px; margin:10px 0; resize:none;"></textarea>
+      <button type="button" onclick="enterMovement()" style="margin-top:30px; padding:18px 80px; font-size:1.5rem; background:transparent; border:2px solid #C41E3A; color:white; cursor:pointer;">ENTER THE MOVEMENT</button>
+    </form>
   </div>
 
   <div class="film-grain"></div>
@@ -120,32 +225,64 @@
     const video = document.getElementById('mainVideo');
     const subtitle = document.getElementById('subtitle');
     const callBox = document.getElementById('callBox');
+    const choices = document.getElementById('choices');
+    const final = document.getElementById('final');
+    const runMessage = document.getElementById('runMessage');
+
+    // Cursor
+    document.addEventListener('mousemove', e => {
+      document.getElementById('cursor').style.left = e.clientX + 'px';
+      document.getElementById('cursor').style.top = e.clientY + 'px';
+    });
 
     // Phone rings at 10 seconds
     setTimeout(() => {
       subtitle.textContent = "A PHONE IS RINGING...";
       callBox.style.display = 'flex';
-      setTimeout(() => callBox.classList.add('show'), 50);
+      setTimeout(() => callBox.classList.add('show'), 100);
     }, 10000);
 
+    // Answer
     document.getElementById('answer').addEventListener('click', () => {
       callBox.style.display = 'none';
       subtitle.textContent = "YOU WEREN’T SUPPOSED TO FIND US… BUT YOU DID.";
 
       setTimeout(() => {
         subtitle.textContent = "THE MOVEMENT IS CALLING.";
-        setTimeout(() => document.getElementById('choices').style.display = 'flex', 3000);
+        setTimeout(() => choices.style.display = 'flex', 3000);
       }, 4000);
     });
 
+    // Decline
     document.getElementById('decline').addEventListener('click', () => {
       subtitle.textContent = "THE RINGING GETS LOUDER...";
     });
 
-    // Cursor
-    document.addEventListener('mousemove', e => {
-      document.getElementById('cursor').style.left = e.clientX + 'px';
-      document.getElementById('cursor').style.top = e.clientY + 'px';
+    // Choices
+    document.querySelectorAll('.choice').forEach(el => {
+      el.addEventListener('click', () => {
+        choices.style.display = 'none';
+        const choice = el.dataset.choice;
+
+        if (choice === 'run') {
+          runMessage.style.display = 'block';
+        } else if (choice === 'join') {
+          subtitle.textContent = "GOOD. THE MOVEMENT HAS BEEN WAITING.";
+        } else {
+          subtitle.textContent = "SMART. WATCH FROM THE SHADOWS.";
+        }
+
+        setTimeout(() => final.style.display = 'flex', 2200);
+      });
+    });
+
+    function enterMovement() {
+      alert("✅ WELCOME TO SWAG. The movement is now watching you.");
+    }
+
+    // Restart with R key
+    document.addEventListener('keydown', e => {
+      if (e.key.toLowerCase() === "r") video.currentTime = 0;
     });
   </script>
 </body>
