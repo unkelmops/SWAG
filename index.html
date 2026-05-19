@@ -5,16 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SWAG</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-  
+ 
   <style>
     :root {
       --red: #C41E3A;
       --red-glow: rgba(196,30,58,0.4);
       --white: #f5f0eb;
     }
-
     * { margin:0; padding:0; box-sizing:border-box; }
-
     body {
       background:#000;
       color:var(--white);
@@ -23,221 +21,119 @@
       cursor:none;
     }
 
-    /* ── CURSOR ── */
+    /* Cursor */
     .cursor-ring {
       position:fixed; width:40px; height:40px;
       border:1px solid var(--red); border-radius:50%;
       pointer-events:none; z-index:9999;
       transform:translate(-50%,-50%);
-      transition:width 0.3s, height 0.3s, opacity 0.3s;
       mix-blend-mode:exclusion;
+      opacity:0.7;
     }
     .cursor-dot {
-      position:fixed; width:5px; height:5px;
+      position:fixed; width:6px; height:6px;
       background:var(--red); border-radius:50%;
       pointer-events:none; z-index:9999;
       transform:translate(-50%,-50%);
     }
 
-    /* ── VIDEO LAYER ── */
+    /* Video */
     #videoWrapper {
       position:fixed; inset:0; z-index:1;
       overflow:hidden;
-      transform-origin:center center;
+      transition: opacity 2.5s ease-out;
     }
-
     #mainVideo {
       position:absolute; top:50%; left:50%;
       width:110%; height:110%;
       object-fit:cover;
       transform:translate(-50%,-50%);
-      will-change:transform;
     }
 
-    /* ── VIGNETTE ── */
-    .vignette {
-      position:fixed; inset:0; z-index:5;
-      background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.85) 100%);
-      pointer-events:none;
+    /* Overlays */
+    .vignette, .scanlines, .grain, .flicker {
+      position:fixed; inset:0; pointer-events:none;
     }
+    .vignette { background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.88) 100%); z-index:5; }
+    .scanlines { z-index:6; background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px); animation:scanShift 12s linear infinite; }
+    @keyframes scanShift { 0% { background-position:0 0; } 100% { background-position:0 100px; } }
+    .grain { z-index:7; opacity:0.035; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); animation:grainMove 0.5s steps(2) infinite; }
+    @keyframes grainMove { 0%,100% { transform:translate(0,0); } 50% { transform:translate(2%,3%); } }
+    .flicker { background:var(--red); mix-blend-mode:multiply; opacity:0; z-index:8; }
 
-    /* ── SCAN LINES ── */
-    .scanlines {
-      position:fixed; inset:0; z-index:6; pointer-events:none;
-      background:repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.08) 2px,
-        rgba(0,0,0,0.08) 4px
-      );
-      animation:scanShift 8s linear infinite;
+    .timecode {
+      position:fixed; bottom:24px; left:32px; z-index:30;
+      font-family:'Barlow Condensed', monospace; font-size:0.75rem;
+      letter-spacing:2px; opacity:0.3;
     }
-    @keyframes scanShift {
-      0% { background-position:0 0; }
-      100% { background-position:0 80px; }
-    }
-
-    /* ── GRAIN ── */
-    .grain {
-      position:fixed; inset:-50%; z-index:7; pointer-events:none;
-      width:200%; height:200%;
-      opacity:0.045;
-      animation:grainMove 0.15s steps(1) infinite;
-      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    }
-    @keyframes grainMove {
-      0%  { transform:translate(0,0); }
-      10% { transform:translate(-5%,-5%); }
-      20% { transform:translate(5%,5%); }
-      30% { transform:translate(-3%,7%); }
-      40% { transform:translate(7%,-3%); }
-      50% { transform:translate(-7%,5%); }
-      60% { transform:translate(3%,-7%); }
-      70% { transform:translate(-5%,3%); }
-      80% { transform:translate(7%,7%); }
-      90% { transform:translate(-3%,-3%); }
-    }
-
-    /* ── RED FLICKER OVERLAY ── */
-    .flicker {
-      position:fixed; inset:0; z-index:8; pointer-events:none;
-      background:var(--red);
-      opacity:0;
-      mix-blend-mode:multiply;
-    }
-
-    /* ── GLITCH LINES ── */
-    .glitch-h {
-      position:fixed; left:0; right:0; height:2px;
-      background:var(--red); z-index:9;
-      pointer-events:none;
-      opacity:0;
-    }
-
-    /* ── SUBTITLE ── */
     .subtitle {
       position:fixed; bottom:9%; left:50%; transform:translateX(-50%);
       font-size:1.5rem; font-weight:500; letter-spacing:5px;
       text-transform:uppercase; z-index:30; white-space:nowrap;
-      text-shadow:0 0 40px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,1);
-      opacity:0;
-      transition:opacity 0.6s;
+      text-shadow:0 0 40px rgba(0,0,0,0.9);
+      opacity:0; transition:opacity 0.6s;
     }
     .subtitle.show { opacity:1; }
 
-    /* ── CORNER MARKS ── */
-    .corner {
-      position:fixed; z-index:25; width:30px; height:30px;
-      pointer-events:none; opacity:0.35;
-    }
-    .corner::before, .corner::after { content:''; position:absolute; background:var(--red); }
-    .corner--tl { top:24px; left:24px; }
-    .corner--tl::before { width:100%; height:1px; top:0; left:0; }
-    .corner--tl::after  { width:1px; height:100%; top:0; left:0; }
-    .corner--tr { top:24px; right:24px; }
-    .corner--tr::before { width:100%; height:1px; top:0; right:0; }
-    .corner--tr::after  { width:1px; height:100%; top:0; right:0; }
-    .corner--bl { bottom:24px; left:24px; }
-    .corner--bl::before { width:100%; height:1px; bottom:0; left:0; }
-    .corner--bl::after  { width:1px; height:100%; bottom:0; left:0; }
-    .corner--br { bottom:24px; right:24px; }
-    .corner--br::before { width:100%; height:1px; bottom:0; right:0; }
-    .corner--br::after  { width:1px; height:100%; bottom:0; right:0; }
-
-    /* ── TIMECODE ── */
-    .timecode {
-      position:fixed; bottom:24px; left:32px; z-index:30;
-      font-family:'Barlow Condensed', monospace; font-size:0.75rem;
-      letter-spacing:2px; opacity:0.3; color:var(--white);
-      pointer-events:none;
-    }
-
-    /* ── CALL BOX ── */
+    /* CALL BOX - CENTERED + BLUR */
     .call-box {
-      position:fixed; top:11%; left:50%; transform:translateX(-50%) translateY(-20px);
-      background:rgba(8,8,8,0.97);
-      border-left:4px solid var(--red);
-      padding:20px 36px; border-radius:3px;
-      display:none; align-items:center; gap:32px;
-      z-index:60; min-width:400px;
-      opacity:0;
-      transition:opacity 0.5s, transform 0.5s;
-      box-shadow:0 0 60px rgba(196,30,58,0.25), 0 20px 50px rgba(0,0,0,0.9);
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) translateY(30px);
+      background: rgba(8, 8, 8, 0.96);
+      border-left: 4px solid var(--red);
+      padding: 32px 44px;
+      border-radius: 4px;
+      display: none;
+      align-items: center;
+      gap: 36px;
+      z-index: 60;
+      min-width: 440px;
+      opacity: 0;
+      transition: all 0.7s cubic-bezier(0.23,1,0.32,1);
+      box-shadow: 0 0 90px rgba(196,30,58,0.35), 0 40px 70px rgba(0,0,0,0.95);
+      filter: blur(14px);
+      backdrop-filter: blur(10px);
     }
-    .call-box::before {
-      content:''; position:absolute; top:0; left:0; right:0; height:1px;
-      background:linear-gradient(90deg, transparent, var(--red), transparent);
-      animation:callPulse 2s ease-in-out infinite;
+    .call-box.show {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+      filter: blur(0px);
     }
-    @keyframes callPulse {
-      0%,100%{opacity:0.3} 50%{opacity:1}
-    }
-    .call-box.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-    .call-label {
-      font-size:0.65rem; letter-spacing:4px; color:var(--red);
-      margin-bottom:4px; opacity:0.8;
-    }
-    .call-name {
-      font-family:'Bebas Neue'; font-size:2.4rem; letter-spacing:3px;
-      line-height:1;
-    }
-    .call-status {
-      font-size:0.8rem; letter-spacing:2px; opacity:0.5; margin-top:4px;
-    }
-    .call-dot {
-      display:inline-block; width:6px; height:6px; border-radius:50%;
-      background:var(--red); margin-right:6px;
-      animation:blink 1s ease-in-out infinite;
-    }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.1} }
+    .call-label { font-size:0.7rem; letter-spacing:4px; color:var(--red); margin-bottom:6px; }
+    .call-name { font-family:'Bebas Neue'; font-size:2.6rem; letter-spacing:3px; }
+    .call-status { font-size:0.85rem; letter-spacing:2px; opacity:0.6; margin-top:6px; }
+    .call-dot { display:inline-block; width:7px; height:7px; background:var(--red); border-radius:50%; margin-right:8px; animation:blink 1.2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
-    .call-actions { display:flex; gap:12px; flex-direction:column; }
     .call-btn {
-      padding:10px 24px; font-family:'Barlow Condensed'; font-size:1rem;
-      font-weight:700; letter-spacing:3px; text-transform:uppercase;
-      border:1.5px solid; border-radius:2px; cursor:pointer;
-      transition:all 0.25s; background:transparent;
+      padding:12px 28px; font-weight:700; letter-spacing:3px;
+      text-transform:uppercase; border:1.5px solid; border-radius:2px;
+      cursor:pointer; transition:all 0.3s;
     }
-    #answer { border-color:var(--red); color:var(--white); }
-    #answer:hover { background:var(--red); box-shadow:0 0 25px var(--red-glow); }
-    #decline { border-color:#333; color:#555; }
-    #decline:hover { border-color:#666; color:#888; }
+    #answer { border-color:var(--red); color:white; }
+    #answer:hover { background:var(--red); }
+    #decline { border-color:#444; color:#888; }
 
-    /* ── CHOICES ── */
+    /* CHOICES */
     .choice-container {
-      position:fixed; inset:0;
-      display:none; align-items:center; justify-content:center;
+      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
       gap:0; z-index:70;
     }
-
     .choice {
-      flex:1; height:100vh; position:relative;
-      overflow:hidden; cursor:pointer;
-      border-right:1px solid rgba(196,30,58,0.2);
+      flex:1; height:100vh; position:relative; overflow:hidden;
+      cursor:pointer; border-right:1px solid rgba(196,30,58,0.2);
       transition:flex 0.6s cubic-bezier(0.23,1,0.32,1);
     }
     .choice:last-child { border-right:none; }
     .choice:hover { flex:2; }
-    .choice:hover .choice-overlay { opacity:0.5; }
-    .choice:hover .choice-label { letter-spacing:8px; }
-    .choice:hover .choice-line { width:60px; }
-
-    .choice-bg {
-      position:absolute; inset:0;
-      background:#111; /* placeholder until videos load */
-    }
-    .choice-bg video {
-      width:100%; height:100%; object-fit:cover; opacity:0.6;
-    }
-
+    .choice-bg video { width:100%; height:100%; object-fit:cover; opacity:0.6; }
     .choice-overlay {
       position:absolute; inset:0;
       background:linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%);
-      transition:opacity 0.4s;
     }
-
     .choice-content {
       position:absolute; bottom:15%; left:50%; transform:translateX(-50%);
       text-align:center;
@@ -248,121 +144,51 @@
     }
     .choice-label {
       font-family:'Bebas Neue'; font-size:3.5rem; letter-spacing:4px;
-      display:block; transition:letter-spacing 0.4s;
     }
-    .choice-sub {
-      font-size:0.7rem; letter-spacing:4px; opacity:0.4; margin-top:6px;
-      display:block; text-transform:uppercase;
-    }
+    .choice:hover .choice-line { width:60px; }
+    .choice:hover .choice-label { letter-spacing:8px; }
 
-    /* ── FINAL SCREEN ── */
+    /* FINAL SCREEN */
     .final-screen {
-      position:fixed; inset:0; background:#000;
-      display:none; align-items:center; justify-content:center;
-      flex-direction:column; z-index:100; text-align:center;
-      padding:40px;
+      position:fixed; inset:0; background:#000; display:none;
+      align-items:center; justify-content:center; flex-direction:column;
+      z-index:100; text-align:center; padding:40px;
     }
-
     .final-headline {
       font-family:'Bebas Neue'; font-size:clamp(3rem,8vw,7rem);
-      letter-spacing:-1px; line-height:0.9;
-      opacity:0; transform:translateY(30px);
+      letter-spacing:-1px; line-height:0.9; opacity:0;
       transition:opacity 0.8s, transform 0.8s;
-      margin-bottom:8px;
     }
     .final-headline.show { opacity:1; transform:translateY(0); }
-
-    .final-sub {
-      font-size:0.9rem; letter-spacing:6px; opacity:0;
-      color:var(--red); text-transform:uppercase;
-      transition:opacity 0.8s 0.3s;
-    }
+    .final-sub { font-size:0.9rem; letter-spacing:6px; opacity:0; color:var(--red); text-transform:uppercase; transition:opacity 0.8s 0.3s; }
     .final-sub.show { opacity:0.7; }
 
-    .run-block {
-      display:none; margin:30px 0;
-    }
-    .run-block.show { display:block; }
-    .run-line {
-      font-family:'Bebas Neue'; line-height:1;
-      opacity:0; transform:translateX(-20px);
-      transition:opacity 0.6s, transform 0.6s;
-    }
-    .run-line.show { opacity:1; transform:translateX(0); }
-    .run-line:nth-child(1) { font-size:clamp(2.5rem,6vw,5rem); transition-delay:0.4s; }
-    .run-line:nth-child(2) { font-size:clamp(2rem,5vw,4rem); color:var(--red); transition-delay:0.6s; }
-    .run-line:nth-child(3) { font-size:clamp(1.5rem,3.5vw,3rem); transition-delay:0.8s; letter-spacing:4px; }
-
-    /* ── FORM ── */
     .form-wrap {
       margin-top:40px; width:min(420px, 90vw);
-      opacity:0; transform:translateY(20px);
-      transition:opacity 0.8s 0.5s, transform 0.8s 0.5s;
+      opacity:0; transition:opacity 0.8s 0.5s;
     }
-    .form-wrap.show { opacity:1; transform:translateY(0); }
-
-    .field {
-      position:relative; margin-bottom:16px;
-    }
+    .form-wrap.show { opacity:1; }
+    .field { margin-bottom:16px; }
     .field input, .field textarea {
-      width:100%;
-      background:rgba(255,255,255,0.03);
+      width:100%; background:rgba(255,255,255,0.03);
       border:none; border-bottom:1px solid rgba(196,30,58,0.4);
-      color:var(--white);
-      padding:14px 0; font-family:'Barlow Condensed';
-      font-size:1.1rem; letter-spacing:2px;
-      text-transform:uppercase; outline:none;
-      transition:border-color 0.3s;
+      color:var(--white); padding:14px 0; font-size:1.1rem;
+      letter-spacing:2px; text-transform:uppercase; outline:none;
     }
-    .field input::placeholder, .field textarea::placeholder {
-      color:rgba(255,255,255,0.2); font-size:0.85rem; letter-spacing:4px;
-    }
-    .field input:focus, .field textarea:focus {
-      border-bottom-color:var(--red);
-    }
-    .field textarea { height:100px; resize:none; }
-
     .submit-btn {
       margin-top:30px; width:100%; padding:18px;
-      background:transparent;
-      border:1.5px solid var(--red);
+      background:transparent; border:1.5px solid var(--red);
       color:var(--white); font-family:'Bebas Neue';
-      font-size:1.6rem; letter-spacing:5px;
-      cursor:pointer; position:relative; overflow:hidden;
-      transition:color 0.4s;
-    }
-    .submit-btn::before {
-      content:''; position:absolute;
-      inset:0; background:var(--red);
-      transform:scaleX(0); transform-origin:left;
-      transition:transform 0.4s cubic-bezier(0.23,1,0.32,1);
-    }
-    .submit-btn:hover::before { transform:scaleX(1); }
-    .submit-btn span { position:relative; z-index:1; }
-
-    /* ── TRANSITION FLASH ── */
-    .flash {
-      position:fixed; inset:0; background:#fff;
-      z-index:200; pointer-events:none; opacity:0;
-    }
-
-    /* ── LOADING BAR ── */
-    .load-bar {
-      position:fixed; bottom:0; left:0; height:2px;
-      background:var(--red); z-index:50;
-      width:0%;
-      box-shadow:0 0 10px var(--red);
-      transition:width 0.05s linear;
+      font-size:1.6rem; letter-spacing:5px; cursor:pointer;
     }
   </style>
 </head>
 <body>
-
   <div class="cursor-ring" id="cursorRing"></div>
   <div class="cursor-dot" id="cursorDot"></div>
 
   <div id="videoWrapper">
-    <video id="mainVideo" autoplay muted playsinline loop>
+    <video id="mainVideo" autoplay muted playsinline>
       <source src="https://i.imgur.com/DCMK44t.mp4" type="video/mp4">
     </video>
   </div>
@@ -371,27 +197,18 @@
   <div class="scanlines"></div>
   <div class="grain"></div>
   <div class="flicker" id="flicker"></div>
-  <div class="glitch-h" id="glitchLine"></div>
-
-  <div class="corner corner--tl"></div>
-  <div class="corner corner--tr"></div>
-  <div class="corner corner--bl"></div>
-  <div class="corner corner--br"></div>
 
   <div class="timecode" id="timecode">00:00:00:00</div>
-
   <div class="subtitle" id="subtitle"></div>
-
-  <div class="load-bar" id="loadBar"></div>
 
   <!-- CALL BOX -->
   <div class="call-box" id="callBox">
     <div>
-      <div class="call-label">INCOMING</div>
+      <div class="call-label">INCOMING TRANSMISSION</div>
       <div class="call-name">SWAG</div>
-      <div class="call-status"><span class="call-dot"></span>CALLING...</div>
+      <div class="call-status"><span class="call-dot"></span>CONNECTING...</div>
     </div>
-    <div class="call-actions">
+    <div>
       <button class="call-btn" id="answer">ANSWER</button>
       <button class="call-btn" id="decline">DECLINE</button>
     </div>
@@ -400,9 +217,7 @@
   <!-- CHOICES -->
   <div class="choice-container" id="choices">
     <div class="choice" data-choice="join">
-      <div class="choice-bg">
-        <video src="YOUR_JOIN_LINK.mp4" muted loop autoplay playsinline></video>
-      </div>
+      <div class="choice-bg"><video src="YOUR_JOIN_LINK.mp4" muted loop playsinline></video></div>
       <div class="choice-overlay"></div>
       <div class="choice-content">
         <div class="choice-line"></div>
@@ -411,9 +226,7 @@
       </div>
     </div>
     <div class="choice" data-choice="observe">
-      <div class="choice-bg">
-        <video src="YOUR_OBSERVE_LINK.mp4" muted loop autoplay playsinline></video>
-      </div>
+      <div class="choice-bg"><video src="YOUR_OBSERVE_LINK.mp4" muted loop playsinline></video></div>
       <div class="choice-overlay"></div>
       <div class="choice-content">
         <div class="choice-line"></div>
@@ -422,9 +235,7 @@
       </div>
     </div>
     <div class="choice" data-choice="run">
-      <div class="choice-bg">
-        <video src="YOUR_RUN_LINK.mp4" muted loop autoplay playsinline></video>
-      </div>
+      <div class="choice-bg"><video src="YOUR_RUN_LINK.mp4" muted loop playsinline></video></div>
       <div class="choice-overlay"></div>
       <div class="choice-content">
         <div class="choice-line"></div>
@@ -437,247 +248,110 @@
   <!-- FINAL SCREEN -->
   <div class="final-screen" id="final">
     <div class="final-headline" id="finalHeadline">YOU HAVE BEEN<br>SELECTED</div>
-    <div class="final-sub" id="finalSub">The movement found you. You cannot leave.</div>
-
-    <div class="run-block" id="runBlock">
-      <div class="run-line" id="rl1">EVERY SATURDAY</div>
-      <div class="run-line" id="rl2">6 AM</div>
-      <div class="run-line" id="rl3">PRELLER SQUARE</div>
-    </div>
-
+    <div class="final-sub" id="finalSub">The movement found you.</div>
     <div class="form-wrap" id="formWrap">
-      <div class="field"><input type="text" placeholder="Name"></div>
-      <div class="field"><input type="text" placeholder="Email or WhatsApp"></div>
-      <div class="field"><textarea placeholder="Why do you want SWAG?"></textarea></div>
-      <button class="submit-btn" onclick="enterMovement()">
-        <span>ENTER THE MOVEMENT</span>
-      </button>
+      <div class="field"><input type="text" placeholder="NAME"></div>
+      <div class="field"><input type="text" placeholder="EMAIL OR WHATSAPP"></div>
+      <div class="field"><textarea placeholder="WHY DO YOU WANT SWAG?"></textarea></div>
+      <button class="submit-btn" onclick="enterMovement()">ENTER THE MOVEMENT</button>
     </div>
   </div>
 
-  <div class="flash" id="flash"></div>
-
   <script>
-    /* ── REFS ── */
-    const video       = document.getElementById('mainVideo');
-    const videoWrap   = document.getElementById('videoWrapper');
-    const subtitle    = document.getElementById('subtitle');
-    const callBox     = document.getElementById('callBox');
-    const choices     = document.getElementById('choices');
-    const final       = document.getElementById('final');
-    const runBlock    = document.getElementById('runBlock');
-    const flicker     = document.getElementById('flicker');
-    const glitchLine  = document.getElementById('glitchLine');
-    const flash       = document.getElementById('flash');
-    const loadBar     = document.getElementById('loadBar');
+    const videoWrap = document.getElementById('videoWrapper');
+    const video = document.getElementById('mainVideo');
+    const callBox = document.getElementById('callBox');
+    const choices = document.getElementById('choices');
+    const final = document.getElementById('final');
+    const subtitle = document.getElementById('subtitle');
+    const flicker = document.getElementById('flicker');
 
-    /* ── CURSOR ── */
-    const ring = document.getElementById('cursorRing');
-    const dot  = document.getElementById('cursorDot');
-    let mx=0, my=0, rx=0, ry=0;
-    document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
-    (function loop() {
-      rx += (mx - rx) * 0.12;
-      ry += (my - ry) * 0.12;
-      ring.style.left = rx + 'px';
-      ring.style.top  = ry + 'px';
-      dot.style.left  = mx + 'px';
-      dot.style.top   = my + 'px';
-      requestAnimationFrame(loop);
-    })();
+    let mx = 0, my = 0, rx = 0, ry = 0;
 
-    /* ── TIMECODE ── */
-    const tc = document.getElementById('timecode');
-    setInterval(() => {
-      const n = new Date();
-      const pad = v => String(v).padStart(2,'0');
-      tc.textContent = `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}:${pad(Math.floor(n.getMilliseconds()/10))}`;
-    }, 33);
-
-    /* ── PARALLAX CAMERA ── */
-    let camX=0, camY=0, camTX=0, camTY=0;
+    // Cursor
     document.addEventListener('mousemove', e => {
-      camTX = (e.clientX / window.innerWidth  - 0.5) * 18;
-      camTY = (e.clientY / window.innerHeight - 0.5) * 10;
+      mx = e.clientX; my = e.clientY;
+      rx += (mx - rx) * 0.16;
+      ry += (my - ry) * 0.16;
+      document.getElementById('cursorRing').style.left = rx + 'px';
+      document.getElementById('cursorRing').style.top = ry + 'px';
+      document.getElementById('cursorDot').style.left = mx + 'px';
+      document.getElementById('cursorDot').style.top = my + 'px';
     });
-    (function camLoop() {
-      camX += (camTX - camX) * 0.04;
-      camY += (camTY - camY) * 0.04;
-      videoWrap.style.transform = `translate(${camX}px, ${camY}px) scale(1.05)`;
-      requestAnimationFrame(camLoop);
-    })();
 
-    /* ── AMBIENT GLITCH ── */
+    // Video ends → fade to black
+    video.addEventListener('ended', () => {
+      videoWrap.style.opacity = '0';
+      setTimeout(() => video.pause(), 2500);
+    });
+
+    // Random glitch
     function randomGlitch() {
-      if (Math.random() < 0.3) {
-        // horizontal glitch line
-        glitchLine.style.top = Math.random() * 100 + 'vh';
-        glitchLine.style.opacity = '1';
-        setTimeout(() => glitchLine.style.opacity='0', 60 + Math.random()*80);
-
-        // video horizontal shift
-        video.style.transform = `translate(calc(-50% + ${(Math.random()-0.5)*6}px), -50%)`;
-        setTimeout(() => video.style.transform='translate(-50%,-50%)', 80);
-
-        // brief flicker
-        flicker.style.opacity = '0.06';
-        setTimeout(() => flicker.style.opacity='0', 40);
+      if (Math.random() < 0.25) {
+        flicker.style.opacity = '0.08';
+        setTimeout(() => flicker.style.opacity = '0', 90);
       }
-      setTimeout(randomGlitch, 3000 + Math.random() * 8000);
+      setTimeout(randomGlitch, 4000 + Math.random() * 9000);
     }
     randomGlitch();
 
-    /* ── SHOW SUBTITLE ── */
-    function showText(msg, delay=0) {
-      setTimeout(() => {
-        subtitle.classList.remove('show');
-        setTimeout(() => {
-          subtitle.textContent = msg;
-          subtitle.classList.add('show');
-        }, 300);
-      }, delay);
-    }
+    // Timecode
+    setInterval(() => {
+      const n = new Date();
+      const pad = v => String(v).padStart(2,'0');
+      document.getElementById('timecode').textContent = `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}:${pad(Math.floor(n.getMilliseconds()/10))}`;
+    }, 80);
 
-    /* ── FLASH TRANSITION ── */
-    function doFlash(cb) {
-      flash.style.transition = 'opacity 0.08s';
-      flash.style.opacity = '1';
-      setTimeout(() => {
-        flash.style.transition = 'opacity 0.5s';
-        flash.style.opacity = '0';
-        if (cb) cb();
-      }, 120);
-    }
-
-    /* ── LOAD BAR PROGRESS ── */
-    function animateLoadBar(duration, cb) {
-      let w = 0;
-      const step = 100 / (duration / 50);
-      const iv = setInterval(() => {
-        w += step + Math.random()*step*0.5;
-        if (w >= 100) { w=100; clearInterval(iv); loadBar.style.width='100%'; setTimeout(cb, 200); }
-        loadBar.style.width = w + '%';
-      }, 50);
-    }
-
-    /* ── DRAMATIC ZOOM IN ── */
-    function zoomIn(el) {
-      el.style.transform = 'scale(0.92)';
-      el.style.transition = 'transform 0s';
-      setTimeout(() => {
-        el.style.transition = 'transform 1.5s cubic-bezier(0.23,1,0.32,1)';
-        el.style.transform = 'scale(1)';
-      }, 50);
-    }
-
-    /* ── PHONE RING ── */
+    // Show Call
     setTimeout(() => {
-      showText('A PHONE IS RINGING...');
+      subtitle.textContent = "A PHONE IS RINGING...";
+      subtitle.classList.add('show');
       callBox.style.display = 'flex';
-      setTimeout(() => callBox.classList.add('show'), 100);
-      // Pulse video on ring
-      video.style.transition = 'filter 0.5s';
-      let p = 0;
-      const pv = setInterval(() => {
-        video.style.filter = p%2===0 ? 'brightness(1.15) contrast(1.05)' : 'brightness(1)';
-        p++;
-        if (p > 8) { clearInterval(pv); video.style.filter='brightness(1)'; }
-      }, 600);
-    }, 10000);
+      setTimeout(() => callBox.classList.add('show'), 150);
+    }, 7500);
 
-    /* ── ANSWER ── */
+    // Answer
     document.getElementById('answer').addEventListener('click', () => {
-      doFlash(() => {
+      callBox.style.opacity = '0';
+      setTimeout(() => {
         callBox.style.display = 'none';
-        showText("YOU WEREN'T SUPPOSED TO FIND US… BUT YOU DID.");
-
-        // Slow zoom on video
-        videoWrap.style.transition = 'transform 4s ease-out';
-        videoWrap.style.transform = 'scale(1.12)';
-        setTimeout(() => videoWrap.style.transition = '', 4100);
+        subtitle.classList.remove('show');
+        subtitle.textContent = "YOU WEREN'T SUPPOSED TO FIND US...";
+        subtitle.classList.add('show');
 
         setTimeout(() => {
-          showText('THE MOVEMENT IS CALLING.');
-          setTimeout(() => {
-            // Crash zoom + flash into choices
-            videoWrap.style.transition = 'transform 0.3s ease-in';
-            videoWrap.style.transform = 'scale(1.25)';
-            setTimeout(() => {
-              doFlash(() => {
-                choices.style.display = 'flex';
-                subtitle.classList.remove('show');
-              });
-              videoWrap.style.transition = 'transform 1s ease-out';
-              videoWrap.style.transform = 'scale(1.05)';
-            }, 300);
-          }, 2500);
-        }, 3500);
-      });
+          choices.style.display = 'flex';
+        }, 2500);
+      }, 600);
     });
 
-    /* ── DECLINE ── */
+    // Decline (optional shake)
     document.getElementById('decline').addEventListener('click', () => {
-      showText('THE RINGING GETS LOUDER...');
-      // Shake
-      let s = 0;
-      const sh = setInterval(() => {
-        videoWrap.style.transform = `scale(1.05) translate(${(Math.random()-0.5)*8}px,${(Math.random()-0.5)*4}px)`;
-        if (++s > 10) { clearInterval(sh); videoWrap.style.transform='scale(1.05)'; }
-      }, 60);
+      subtitle.textContent = "THE RINGING GETS LOUDER...";
+      subtitle.classList.add('show');
     });
 
-    /* ── CHOICES ── */
+    // Choices
     document.querySelectorAll('.choice').forEach(el => {
       el.addEventListener('click', () => {
         const choice = el.dataset.choice;
+        choices.style.display = 'none';
+        final.style.display = 'flex';
 
-        doFlash(() => {
-          choices.style.display = 'none';
-
-          // Animate final screen in
-          final.style.display = 'flex';
-          final.style.opacity = '0';
-          zoomIn(final);
-          setTimeout(() => { final.style.opacity = '1'; }, 50);
-
-          const headline = document.getElementById('finalHeadline');
-          const fsub     = document.getElementById('finalSub');
-          const formWrap = document.getElementById('formWrap');
-
-          if (choice === 'run') {
-            runBlock.classList.add('show');
-            ['rl1','rl2','rl3'].forEach((id,i) => {
-              setTimeout(() => document.getElementById(id).classList.add('show'), 500+i*200);
-            });
-          } else {
-            const msgs = {
-              join:    'The movement has been waiting for you.',
-              observe: 'The shadows know your name.'
-            };
-            fsub.textContent = msgs[choice];
-          }
-
-          setTimeout(() => headline.classList.add('show'), 200);
-          setTimeout(() => fsub.classList.add('show'), 500);
-
-          // Progress bar then form
-          animateLoadBar(2000, () => {
-            loadBar.style.opacity = '0';
-            formWrap.classList.add('show');
-          });
-        });
+        document.getElementById('finalHeadline').classList.add('show');
+        document.getElementById('finalSub').classList.add('show');
+        document.getElementById('formWrap').classList.add('show');
       });
     });
 
-    /* ── SUBMIT ── */
     function enterMovement() {
       const btn = document.querySelector('.submit-btn');
-      btn.innerHTML = '<span>WELCOME TO THE MOVEMENT</span>';
+      btn.innerHTML = "WELCOME TO THE MOVEMENT";
       btn.style.borderColor = '#fff';
       btn.style.color = '#fff';
     }
 
-    /* ── RESTART ── */
+    // Restart
     document.addEventListener('keydown', e => {
       if (e.key.toLowerCase() === 'r') location.reload();
     });
